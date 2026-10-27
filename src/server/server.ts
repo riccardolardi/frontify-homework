@@ -31,7 +31,11 @@ const mergeChunks = async (fileName: string, totalChunks: number) => {
         unlinkSync(chunkFilePath);
     }
 
-    writeStream.end();
+    // wait until the merged file is on disk, otherwise a list request right after the 200 can see an empty file
+    await new Promise<void>((resolve, reject) => {
+        writeStream.once('error', reject);
+        writeStream.end(resolve);
+    });
 };
 
 app.use(bodyParser.urlencoded({ extended: false }));
