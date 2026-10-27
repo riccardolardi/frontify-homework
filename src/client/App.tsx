@@ -1,21 +1,38 @@
 import { type ReactElement } from 'react';
 
-export const App = (): ReactElement => {
-    return (
-        <main className="relative isolate h-dvh">
-            <img
-                src="https://cdn-assets-eu.frontify.com/s3/frontify-enterprise-files-eu/eyJwYXRoIjoid2VhcmVcL2FjY291bnRzXC82ZVwvNDAwMDM4OFwvcHJvamVjdHNcLzk4NFwvYXNzZXRzXC9iOFwvMTE1MjY1XC8xMjYwMTU0YzFhYmVmMDVjNjZlY2Q2MDdmMTRhZTkxNS0xNjM4MjU4MjQwLmpwZyJ9:weare:_kpZgwnGPTxOhYxIyfS1MhuZmxGrFCzP6ZW6dc-F6BQ?width=2400"
-                alt="background image"
-                aria-hidden="true"
-                className="absolute inset-0 -z-10 h-full w-full object-cover object-top"
-            />
+import { createChunkedUploader, DEFAULT_CHUNK_SIZE } from './adapters/chunkedUploader';
+import { createSingleUploader } from './adapters/singleUploader';
+import { useStoredFiles } from './hooks/useStoredFiles';
+import { FileList, FileUploader, type UploadFn, UploadStatus, useUploads } from './uploader';
 
-            <div className="mx-auto max-w-7xl px-6 py-32 text-center sm:py-40 lg:px-8">
-                <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-800 sm:text-5xl">Hello there</h1>
-                <p className="mt-4 text-base text-gray-900 sm:mt-6">
-                    Everything brand starts small, let&apos;s build something great.
+const chunked = createChunkedUploader();
+const single = createSingleUploader();
+
+// files up to one chunk in size go in one request, bigger ones in chunks
+const upload: UploadFn = (file, onProgress, signal) => {
+    const send = file.size > DEFAULT_CHUNK_SIZE ? chunked : single;
+    return send(file, onProgress, signal);
+};
+
+export const App = (): ReactElement => {
+    const { files, error, reload } = useStoredFiles();
+    const { uploads, uploaded, addFiles } = useUploads({ upload, onUploaded: reload });
+
+    return (
+        <main className="mx-auto max-w-2xl space-y-4 p-6">
+            <h1 className="text-2xl font-bold text-gray-900">File upload</h1>
+            {error && (
+                <p role="alert" className="text-red-600">
+                    {error}
                 </p>
-            </div>
+            )}
+            <FileUploader onFiles={addFiles} />
+            <UploadStatus uploads={uploads} uploaded={uploaded} />
+            {files === undefined && !error ? (
+                <p className="text-sm text-gray-500">Loading files…</p>
+            ) : (
+                <FileList files={[...uploads, ...(files ?? [])]} />
+            )}
         </main>
     );
 };
