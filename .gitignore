@@ -29,3 +29,6 @@ uploads-chunks
 !uploads-chunks/.gitkeep
 src/server/test/uploads
 src/server/test/uploads-chunks
+
+# TypeScript incremental build cache
+*.tsbuildinfo

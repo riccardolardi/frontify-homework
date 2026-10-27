@@ -1,4 +1,6 @@
-import { readFileSync, readdirSync, rmSync } from 'node:fs';
+// @vitest-environment node
+// happy-dom's FormData is not parsed by multer, so this file talks to the server from plain Node
+import { mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -11,6 +13,8 @@ const TESTING_UPLOADS_CHUNKS_DIR = 'src/server/test/uploads-chunks';
 
 describe('E2E', () => {
     beforeAll(() => {
+        mkdirSync(TESTING_UPLOADS_DIR, { recursive: true });
+        mkdirSync(TESTING_UPLOADS_CHUNKS_DIR, { recursive: true });
         const uploadedFiles = readdirSync(TESTING_UPLOADS_DIR);
         for (const file of uploadedFiles) {
             rmSync(join(TESTING_UPLOADS_DIR, file));
