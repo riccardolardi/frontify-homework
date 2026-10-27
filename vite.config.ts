@@ -6,6 +6,7 @@ export default defineConfig({
     plugins: [react()],
     test: {
         environment: 'happy-dom',
+        setupFiles: ['./src/client/test-setup.ts'],
         env: {
             NODE_ENV: 'test',
         },
